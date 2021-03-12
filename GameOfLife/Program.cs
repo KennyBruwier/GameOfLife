@@ -26,22 +26,29 @@ namespace GameOfLife
         {
             Status[,] grid = new Status[Rijen, Kolomen];
             Random rnd = new Random();
+            bool pauze = false;
 
-            for (int rij = 0; rij < Rijen; rij++)
-            {
-                for (int kolom = 0; kolom < Kolomen; kolom++)
-                {
-                    grid[rij, kolom] = (Status)rnd.Next(0, 2);
-                }
-            }
+            
 
             Console.CancelKeyPress += (sender, arg) =>
             {
                 runSimulator = false;
                 Console.WriteLine("\nSimulatie gestopt");
+                Thread.Sleep(500);
             };
 
-            Console.Clear();
+            if (!pauze)
+            {
+                for (int rij = 0; rij < Rijen; rij++)
+                {
+                    for (int kolom = 0; kolom < Kolomen; kolom++)
+                    {
+                        grid[rij, kolom] = (Status)rnd.Next(0, 2);
+                    }
+                }
+                Console.Clear();
+            }
+            
 
             while(runSimulator)
             {
@@ -106,5 +113,23 @@ namespace GameOfLife
             //Console.Write(scherm);
             Thread.Sleep(timeout);
         }
+        static bool InputBool(string tekst = "j/n", bool Cyes = true, bool Cno = false)
+        {
+            ConsoleKeyInfo keyStrike = new ConsoleKeyInfo();
+
+            Console.WriteLine(tekst);
+            keyStrike = Console.ReadKey(true);
+
+            switch (Char.ToLower(keyStrike.KeyChar))
+            {
+                case 'y':
+                case 'j': return Cyes;
+                case 'n': return Cno;
+
+            }
+            return false;
+
+        }
     }
+
 }
