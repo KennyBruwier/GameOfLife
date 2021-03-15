@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
 using TDSconsoleMuisEvents;
+using System.IO;
 
 namespace GameOfLife
 {
@@ -21,7 +22,9 @@ namespace GameOfLife
         Lwss,
         Mwss,
         Hwss,
-        Pulsar
+        Pulsar,
+        _119P4H1V0,
+        Glidergun
     }
     class Program
     {
@@ -60,7 +63,6 @@ namespace GameOfLife
             muisY = e.Muis.Ypositie;
             muisClick = true;
             invoer = true;
-            
         }
 
         static void GameOfLife(int Rijen = 50, int Kolomen = 100, int cursX = 0, int cursY = 0)
@@ -91,8 +93,38 @@ namespace GameOfLife
                                 { false, false, false, false, true, false, false, false, false, false, true, false, false, false, false},
                                 { false, false, false, false, true, false, false, false, false, false, true, false, false, false, false }
             };
-            string[] keyBindsMenu = { "G A M E  of        ", "            L I F E", "1: Glider", "2: Light-weight spaceship", "3: Middle-weight spaceship", "4: Heavy-weight spaceship", "5: Pulsar" };
-            
+            bool [,] _119P4H1V0 = { {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,false },
+                                    {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,false,true },
+                                    {false,false,false,false,false,false,true,false,true,false,false,false,false,false,false,true,false,false,false,false,false,true,true,false,false,false,false,false,false,false,false,true,false,false,false },
+                                    {false,false,false,false,false,false,true,false,false,false,false,true,false,false,false,false,true,false,true,true,true,true,true,true,false,false,false,false,true,true,false,false,false,false,false },
+                                    {false,false,false,false,false,false,true,false,true,true,true,true,true,true,true,true,false,false,false,false,false,false,false,false,false,false,true,false,false,true,false,true,true,true,false },
+                                    {false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,true,false,false,false,false,false,false,false,true,true,true,true,false,false,false,false,true,true,true,false },
+                                    {false,false,false,false,true,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,true,true,false,true,false,false,false,false,false,false,false },
+                                    {false,true,false,false,true,true,false,false,false,false,false,false,false,true,true,false,false,false,false,false,false,false,false,true,true,false,false,false,false,false,false,false,false,false,false },
+                                    {false,true,false,false,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false },
+                                    {true,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false },
+                                    {false,true,false,false,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false },
+                                    {false,true,false,false,true,true,false,false,false,false,false,false,false,true,true,false,false,false,false,false,false,false,false,true,true,false,false,false,false,false,false,false,false,false,false },
+                                    {false,false,false,false,true,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,true,true,false,true,false,false,false,false,false,false,false },
+                                    {false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,true,false,false,false,false,false,false,false,true,true,true,true,false,false,false,false,true,true,true,false },
+                                    {false,false,false,false,false,false,true,false,true,true,true,true,true,true,true,true,false,false,false,false,false,false,false,false,false,false,true,false,false,true,false,true,true,true,false },
+                                    {false,false,false,false,false,false,true,false,false,false,false,true,false,false,false,false,true,false,true,true,true,true,true,true,false,false,false,false,true,true,false,false,false,false,false },
+                                    {false,false,false,false,false,false,true,false,true,false,false,false,false,false,false,true,false,false,false,false,false,true,true,false,false,false,false,false,false,false,false,true,false,false,false },
+                                    {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,false,true },
+                                    {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,false }};
+            bool[,] gliderGun = {   {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,false,false,false,false,false,false },
+                                    {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,false,true,false,false,false,false,false,false,false,false,false,false,false },
+                                    {false,false,false,false,false,false,false,false,false,false,false,false,true,true,false,false,false,false,false,false,true,true,false,false,false,false,false,false,false,false,false,false,false,false,true,true },
+                                    {false,false,false,false,false,false,false,false,false,false,false,true,false,false,false,true,false,false,false,false,true,true,false,false,false,false,false,false,false,false,false,false,false,false,true,true },
+                                    {true,true,false,false,false,false,false,false,false,false,true,false,false,false,false,false,true,false,false,false,true,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false },
+                                    {true,true,false,false,false,false,false,false,false,false,true,false,false,false,true,false,true,true,false,false,false,false,true,false,true,false,false,false,false,false,false,false,false,false,false,false },
+                                    {false,false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,true,false,false,false,false,false,false,false,true,false,false,false,false,false,false,false,false,false,false,false },
+                                    {false,false,false,false,false,false,false,false,false,false,false,true,false,false,false,true,false,false,false,false,false,false,false,true,false,false,false,false,false,false,false,false,false,false,false,false },
+                                    {false,false,false,false,false,false,false,false,false,false,false,false,true,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false }};
+
+            string[] keyBindsMenu = { "G A M E  of  L I F E", "L I F E  of  G A M E", "1: Glider", "2: Light-weight spaceship", "3: Middle-weight spaceship", "4: Heavy-weight spaceship", "5: Pulsar", "6: 119P4H1V0", "7: Glider Gun" };
+
+            string[] title = { "G A M E  of  L I F E", "L I F E  of  G A M E" };
             Console.Clear();
             Console.WindowWidth = 150;
             Console.WindowHeight = 61;
@@ -168,6 +200,20 @@ namespace GameOfLife
                                     optionSelected = "Pulsar";
                                 }
                                 break;
+                            case ConsoleKey.NumPad6:
+                            case ConsoleKey.D6:
+                                {
+                                    myObjects = Objects._119P4H1V0;
+                                    optionSelected = "119P4H1V0";
+                                }
+                                break;
+                            case ConsoleKey.NumPad7:
+                            case ConsoleKey.D7:
+                                {
+                                    myObjects = Objects.Glidergun;
+                                    optionSelected = "Glidergun";
+                                }
+                                break;
                         }
                     }
                     
@@ -208,6 +254,12 @@ namespace GameOfLife
                                 break;
                             case Objects.Pulsar:
                                 grid = DrawObjectInGrid(grid, pulsar, oRij, oKol);
+                                break;
+                            case Objects._119P4H1V0:
+                                grid = DrawObjectInGrid(grid, _119P4H1V0, oRij, oKol);
+                                break;
+                            case Objects.Glidergun:
+                                grid = DrawObjectInGrid(grid, gliderGun, oRij, oKol);
                                 break;
                         }
                     }
@@ -342,17 +394,14 @@ namespace GameOfLife
                
                 if (i==0)
                 {
-                    //aanAfTeller = (aanAfTeller - 1 < 0) ? 500 : aanAfTeller--;
                     if (aanAfTeller > 100/6)
                     {
                         Console.SetCursorPosition(cursY + 4 + toekomst.GetLength(1) + 4, cursX + 2);
                         Console.Write(msg[i]);
                     }
-                        
                 }
                 else if(i==1)
                 {
-                    //aanAfTeller = (aanAfTeller - 1 < 0) ? 500 : aanAfTeller--;
                     if (aanAfTeller < 100 / 6)
                     {
                         Console.SetCursorPosition(cursY + 4 + toekomst.GetLength(1) + 4, cursX + 2);
@@ -361,7 +410,6 @@ namespace GameOfLife
                 }
                 else
                 {
-                        
                     switch (myObjects)
                     {
                         case Objects.Glider:
@@ -422,6 +470,34 @@ namespace GameOfLife
                         case Objects.Pulsar:
                             {
                                 if (i == 6)
+                                {
+                                    Console.BackgroundColor = ConsoleColor.White;
+                                    Console.ForegroundColor = ConsoleColor.Black;
+                                }
+                                else
+                                {
+                                    Console.BackgroundColor = ConsoleColor.Black;
+                                    Console.ForegroundColor = ConsoleColor.White;
+                                }
+                            }
+                            break;
+                        case Objects._119P4H1V0:
+                            {
+                                if (i == 7)
+                                {
+                                    Console.BackgroundColor = ConsoleColor.White;
+                                    Console.ForegroundColor = ConsoleColor.Black;
+                                }
+                                else
+                                {
+                                    Console.BackgroundColor = ConsoleColor.Black;
+                                    Console.ForegroundColor = ConsoleColor.White;
+                                }
+                            }
+                            break;
+                        case Objects.Glidergun:
+                            {
+                                if (i == 8)
                                 {
                                     Console.BackgroundColor = ConsoleColor.White;
                                     Console.ForegroundColor = ConsoleColor.Black;
