@@ -15,75 +15,93 @@ namespace GameOfLife
         Alive,
         Dead
     }
+    enum Objects
+    {
+        Glider,
+        Lwss,
+        Mwss,
+        Hwss,
+        Pulsar
+    }
     class Program
     {
-        const int Rijen = Kolomen/2;
-        const int Kolomen = 100;
         static int snelheid = 50;
         static bool invoer = false;
-        static bool eersteX = false;
-        static int aantalInvoer = 0;
+        static bool muisClick = false;
         static bool runSimulator = true;
-        static ConsoleKeyInfo cki;
+        static ConsoleKeyInfo ckiNow;
         static int muisX = 0;
         static int muisY = 0;
+        static int aanAfTeller = 0;
+        static Objects myObjects = Objects.Glider;
+
         static void Main(string[] args)
         {
             TDSconsoleMuis muis = new TDSconsoleMuis();
 
             muis.OnMuisKlik += Muis_OnMuisKlik;
 
-            Thread gameOfLife = new Thread(GameOfLife);
-            gameOfLife.Name = "game";
+            Thread gameOfLife1 = new Thread(()=>GameOfLife(50,100,0,0));
+            gameOfLife1.Name = "game1";
+            gameOfLife1.Start();
+            //Thread gameOfLife2 = new Thread(() => GameOfLife(16, 16, 30, 50));
+            //gameOfLife2.Name = "game2";
+            //gameOfLife2.Start();
 
-            Thread invoer = new Thread(Invoer);
-            invoer.Name = "invoer";
-
-            gameOfLife.Start();
-
-            invoer.Start();
+            Thread tInvoer = new Thread(Invoer);
+            tInvoer.Name = "invoer";
+            tInvoer.Start();
         }
 
         private static void Muis_OnMuisKlik(object sender, TDSmuisKlikEventArgs e)
         {
+            muisClick = false;
             muisX = e.Muis.Xpositie;
             muisY = e.Muis.Ypositie;
-            eersteX = true;
+            muisClick = true;
             invoer = true;
+            
         }
 
-        static void GameOfLife()
+        static void GameOfLife(int Rijen = 50, int Kolomen = 100, int cursX = 0, int cursY = 0)
         {
             Status[,] grid = new Status[Rijen, Kolomen];
+            
+            string optionSelected = "Glider";
             Random rnd = new Random();
             Console.OutputEncoding = Encoding.Unicode;
-            int verschil = 0;
-
-            Console.CancelKeyPress += (sender, arg) =>
-            {
-                runSimulator = false;
-                Console.WriteLine("\nSimulatie gestopt");
-                Thread.Sleep(500);
+            bool clear = false;
+            bool[,] glider = { { false, true, false }, { false, false, true }, { true, true, true } };
+            bool[,] lWSS = { { false, true, true, true, true }, { true, false, false, false, true }, { false, false, false, false, true }, { true, false, false, true, false } };
+            bool[,] mWSS = { { false, true, true, true, true, true }, { true, false, false, false, false, true }, { false, false, false, false, false, true }, { true, false, false, false, true, false }, { false, false, true, false, false, false } };
+            bool[,] hWSS = { { false, false, true, true, false, false, false }, { true, false, false, false, false, true, false }, { false, false, false, false, false, false, true }, { true, false, false, false, false, false, true }, { false, true, true, true, true, true, true } };
+            bool[,] pulsar = {  { false, false, false, false, true, false, false, false, false, false, true, false, false, false, false },
+                                { false, false, false, false, true, false, false, false, false, false, true, false, false, false, false},
+                                { false, false, false, false, true, true, false, false, false, true, true, false, false, false, false},
+                                { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+                                { true, true, true, false, false, true, true, false, true, true, false, false, true, true, true},
+                                { false, false, true, false, true, false, true, false, true, false, true, false, true, false, false},
+                                { false, false, false, false, true, true, false, false, false, true, true, false, false, false, false},
+                                { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+                                { false, false, false, false, true, true, false, false, false, true, true, false, false, false, false},
+                                { false, false, true, false, true, false, true, false, true, false, true, false, true, false, false},
+                                { true, true, true, false, false, true, true, false, true, true, false, false, true, true, true},
+                                { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+                                { false, false, false, false, true, true, false, false, false, true, true, false, false, false, false},
+                                { false, false, false, false, true, false, false, false, false, false, true, false, false, false, false},
+                                { false, false, false, false, true, false, false, false, false, false, true, false, false, false, false }
             };
-       
+            string[] keyBindsMenu = { "G A M E  of        ", "            L I F E", "1: Glider", "2: Light-weight spaceship", "3: Middle-weight spaceship", "4: Heavy-weight spaceship", "5: Pulsar" };
+            
             Console.Clear();
             Console.WindowWidth = 150;
             Console.WindowHeight = 61;
-            bool aanAf = true;
 
             for (int rij = 0; rij < Rijen; rij++)
             {
                 for (int kolom = 0; kolom < Kolomen; kolom++)
                 {
-                    if (aanAf)
-                    {
-                        aanAf = true;
-                        grid[rij, kolom] = Status.Dead;
-                    }else
-                    {
-                        aanAf = false;
-                        grid[rij, kolom] = Status.Alive;
-                    }
+                    grid[rij, kolom] = Status.Dead;
                 }
             }
 
@@ -91,179 +109,364 @@ namespace GameOfLife
             {
                 if (invoer)
                 {
-                    switch (cki.Key)
+                    if (!muisClick)
                     {
-                        case ConsoleKey.Enter:
-                            {               
-                                eersteX = true;
-                            }
-                            break;
-                        case ConsoleKey.UpArrow:
-                            {
-                                snelheid += (snelheid - 10) > 0 ? -10 : 0;
-                            }break;
-                        case ConsoleKey.DownArrow:
-                            {
-                                snelheid += (snelheid + 10) < 1000 ? +10 : 0;
-                            }
-                            break;
+                        switch (ckiNow.Key)
+                        {
+                            case ConsoleKey.Enter:
+                                {
+                                    //drawSquar = true;
+                                }
+                                break;
+                            case ConsoleKey.UpArrow:
+                                {
+                                    snelheid += (snelheid - 10) > 0 ? -10 : 0;
+                                }
+                                break;
+                            case ConsoleKey.DownArrow:
+                                {
+                                    snelheid += (snelheid + 10) < 1000 ? +10 : 0;
+                                }
+                                break;
+                            case ConsoleKey.Delete:
+                                {
+                                    clear = true;
+                                }
+                                break;
+                            case ConsoleKey.NumPad1:
+                            case ConsoleKey.D1:
+                                {
+                                    myObjects = Objects.Glider;
+                                    optionSelected = "Glider";
+                                }
+                                break;
+                            case ConsoleKey.NumPad2:
+                            case ConsoleKey.D2:
+                                {
+                                    myObjects = Objects.Lwss;
+                                    optionSelected = "Light-weight spaceship";
+                                }
+                                break;
+                            case ConsoleKey.NumPad3:
+                            case ConsoleKey.D3:
+                                {
+                                    myObjects = Objects.Mwss;
+                                    optionSelected = "Medium-weight spaceship";
+                                }
+                                break;
+                            case ConsoleKey.NumPad4:
+                            case ConsoleKey.D4:
+                                {
+                                    myObjects = Objects.Hwss;
+                                    optionSelected = "Heavy-weight spaceship";
+                                }
+                                break;
+                            case ConsoleKey.NumPad5:
+                            case ConsoleKey.D5:
+                                {
+                                    myObjects = Objects.Pulsar;
+                                    optionSelected = "Pulsar";
+                                }
+                                break;
+                        }
                     }
+                    
                     invoer = false;
-                }
-                if (eersteX)
-                {
-                    aantalInvoer = 15;
-                    verschil = 15;
-                    eersteX = false;
-                }
-                if  (aantalInvoer > 0)
-                {
-                    verschil -= verschil == 0 ? 0 : verschil / aantalInvoer;
-                    int lengteVierkant = 10;
-                    int oRij, bRij, oKol, bKol;
 
-                    if (muisX < Kolomen && muisY < Rijen)
+                    if (muisClick)
                     {
-                        oKol = muisX - (lengteVierkant/2);
-                        bKol = muisX + (lengteVierkant/2);
-                        oRij = muisY - (lengteVierkant/2);
-                        bRij = muisY + (lengteVierkant/2);
+                        int oRij, bRij, oKol, bKol;
+                        muisClick = false;
+                        if (muisX < Kolomen && muisY < Rijen)
+                        {
+                            oKol = muisX;
+                            bKol = muisX;
+                            oRij = muisY;
+                            bRij = muisY;
 
-                    }else
-                    {
-                        oRij = (Rijen / 2) - lengteVierkant / 2 - verschil;
-                        bRij = (Rijen / 2) + lengteVierkant / 2 + verschil;
-                        oKol = (Kolomen / 2) - lengteVierkant / 2 - verschil;
-                        bKol = (Kolomen / 2) + lengteVierkant / 2 + verschil;
+                        }
+                        else
+                        {
+                            oRij = (Rijen / 2);
+                            bRij = (Rijen / 2);
+                            oKol = (Kolomen / 2);
+                            bKol = (Kolomen / 2);
+                        }
+                        switch (myObjects)
+                        {
+                            case Objects.Glider:
+                                grid = DrawObjectInGrid(grid, glider, oRij, oKol);
+                                break;
+                            case Objects.Lwss:
+                                grid = DrawObjectInGrid(grid, lWSS, oRij, oKol);
+                                break;
+                            case Objects.Mwss:
+                                grid = DrawObjectInGrid(grid, mWSS, oRij, oKol);
+                                break;
+                            case Objects.Hwss:
+                                grid = DrawObjectInGrid(grid, hWSS, oRij, oKol);
+                                break;
+                            case Objects.Pulsar:
+                                grid = DrawObjectInGrid(grid, pulsar, oRij, oKol);
+                                break;
+                        }
                     }
-                    grid = DrawInGrid(grid, oRij, bRij, oKol, bKol);
-                    aantalInvoer -= aantalInvoer > 0 ? 1 : 0;
-                    if (aantalInvoer == 0) invoer = false;
-                    eersteX = false;
-                    //aantalInvoer--;
                 }
-
-                snelheid = (snelheid < 10) ? 10 : snelheid;
-                Print(grid, snelheid);
-                Console.WriteLine("Click in the pool to throw a rock <UP ARROW> increase speed <DOWN ARROW> decrease speed");
-                Console.WriteLine($"huidige snelheid: {snelheid}");
-                grid = VolgendeGeneratie(grid);
+                Print(grid, keyBindsMenu, optionSelected, snelheid, cursX, cursY);
+                Console.SetCursorPosition(4, grid.GetLength(0) + 4);
+                Console.Write("Left mouse click to create");
+                Console.Write(string.Format("{0,74}","<UP ARROW> increase speed"));
+               
+                Console.SetCursorPosition(4, grid.GetLength(0) + 5);
+                Console.Write($"huidige snelheid: {snelheid}");
+                Console.Write("<DOWN ARROW> decrease speed".PadLeft(82-snelheid.ToString().Length));
+                if (clear)
+                {
+                    grid = VolgendeGeneratie(grid, true);
+                    clear = false;
+                }
+                else
+                {
+                    grid = VolgendeGeneratie(grid, false);
+                    
+                }
+                    
             }
         }
 
         static void Invoer()
         {
-            ConsoleKeyInfo vorigeKey;
             while (runSimulator)
             {
-                cki = Console.ReadKey(true);
+                //invoer = false;
+                ckiNow = Console.ReadKey(true);
                 invoer = true;
             }
         }
-        static Status[,] VolgendeGeneratie(Status[,] huidigeGrid)
+        static Status[,] VolgendeGeneratie(Status[,] huidigeGrid, bool deleteAll = false)
         {
             Status[,] volgendeGeneratie = new Status[huidigeGrid.GetLength(0), huidigeGrid.GetLength(1)];
 
-            for (int rij = 1; rij < huidigeGrid.GetLength(0)-1 ; rij++)
+            for (int rij = 0; rij < huidigeGrid.GetLength(0) ; rij++)
             {
-                for (int kolom = 1; kolom < huidigeGrid.GetLength(1)-1 ; kolom++)
+                for (int kolom = 0; kolom < huidigeGrid.GetLength(1) ; kolom++)
                 {
+                    
                     int burenInLeven = 0;
-                    for (int i = -1; i <= 1; i++)
+
+                    if (!deleteAll)
                     {
-                        for (int j = -1; j <= 1; j++)
+                        for (int i = -1; i <= 1; i++)
                         {
-                            burenInLeven += huidigeGrid[rij + i, kolom + j] == Status.Alive ? 1 : 0;
+                            for (int j = -1; j <= 1; j++)
+                            {
+                                burenInLeven += huidigeGrid[
+                                    (rij + i) < 1 ?
+                                        huidigeGrid.GetLength(0) - 3 - i :
+                                        (rij + i) > huidigeGrid.GetLength(0) - 2 ?
+                                            0 + i : rij + i,
+                                    (kolom + j) < 1 ?
+                                        huidigeGrid.GetLength(1) - 3 - j :
+                                        (kolom + j) > huidigeGrid.GetLength(1) - 2 ?
+                                            0 + j : kolom + j] == Status.Alive ? 1 : 0;
+                            }
                         }
+
+                        Status huidigeCel = huidigeGrid[rij, kolom];
+                        burenInLeven -= huidigeCel == Status.Alive ? 1 : 0;
+
+                        if (huidigeCel == Status.Alive && burenInLeven < 2)
+                            volgendeGeneratie[rij, kolom] = Status.Dead;
+                        else if (huidigeCel == Status.Alive && burenInLeven > 3)
+                            volgendeGeneratie[rij, kolom] = Status.Dead;
+                        else if (huidigeCel == Status.Dead && burenInLeven == 3)
+                            volgendeGeneratie[rij, kolom] = Status.Alive;
+                        else volgendeGeneratie[rij, kolom] = huidigeCel;
                     }
+                    else volgendeGeneratie[rij, kolom] = Status.Dead;
 
-                    Status huidigeCel = huidigeGrid[rij, kolom];
-                    burenInLeven -= huidigeCel == Status.Alive ? 1 : 0;
-
-                    if (huidigeCel == Status.Alive && burenInLeven < 2)
-                        volgendeGeneratie[rij, kolom] = Status.Dead;
-                    else if (huidigeCel == Status.Alive && burenInLeven > 3)
-                        volgendeGeneratie[rij, kolom] = Status.Dead;
-                    else if (huidigeCel == Status.Dead && burenInLeven == 3)
-                        volgendeGeneratie[rij, kolom] = Status.Alive;
-                    else volgendeGeneratie[rij, kolom] = huidigeCel;
                 }
             }
             return volgendeGeneratie;
         }
 
-        static void Print(Status[,] toekomst, int timeout = 200)
+        static void Print(Status[,] toekomst, string[] msg, string currentOption, int timeout = 200, int cursX = 0, int cursY = 0, bool showIndex = false)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
-            for (int rij = 0; rij < Rijen; rij++)
-            {
-                for (int kolom = 0; kolom < Kolomen; kolom++)
-                {
-                    stringBuilder.Append(toekomst[rij, kolom] == Status.Alive ? "☻" : " ");
-                }
-                stringBuilder.Append("\n");
-            }
-
             Console.BackgroundColor = ConsoleColor.White;
             Console.ForegroundColor = ConsoleColor.Black;
-            Console.CursorVisible = true;
-            Console.SetCursorPosition(0, 0);
-            Console.Write(stringBuilder.ToString());
-            Thread.Sleep(timeout);
-        }
-        static Status[,] DrawInGrid(Status[,] huidigeGrid, int oRij = 0, int bRij = 0, int oKol = 0, int bKol = 0, Status verander = Status.Alive, bool aanEnAf = true)
-        {
-            Status[,] newGrid = huidigeGrid;
-            Random rnd = new Random();
-            bool aanAf = true; ;
-
-            for (int rij = oRij; ((rij < huidigeGrid.GetLength(0))&&(rij <= bRij)); rij++)
+            
+            if (showIndex)
             {
-                for (int kolom = oKol; ((kolom < huidigeGrid.GetLength(1))&&(kolom <= bKol)); kolom++)
+                for (int kolom = 0; kolom < toekomst.GetLength(1); kolom++)
                 {
-                    if (!aanEnAf)
-                        newGrid[rij, kolom] = verander;
-                    else
+                    for (int rij = 0; rij < 1; rij++)
                     {
-                        if (aanAf)
-                        {
-                            newGrid[rij, kolom] = Status.Alive;
-                            aanAf = false;
-                        }
-                        else 
-                        {
-                            newGrid[rij, kolom] = Status.Dead;
-                            aanAf = true;
-                        }
+                        if (kolom % 2 != 0)
+                            stringBuilder.Append(kolom + 1);
+                        else if (kolom < 10)
+                            stringBuilder.Append(' ');
+                    }
+                }
+                Console.SetCursorPosition(cursY + 4, cursX);
+                Console.Write(stringBuilder.ToString());
+                stringBuilder.Clear();
+                for (int rij = 0; rij < toekomst.GetLength(0); rij++)
+                {
+                    for (int kolom = 0; kolom < 1; kolom++)
+                    {
+                        Console.SetCursorPosition(cursY + kolom, cursX + 2 + rij);
+                        Console.Write(rij + 1);
                     }
                 }
             }
+            
+            for (int rij = 0; rij < toekomst.GetLength(0); rij++)
+            {
+                stringBuilder.Clear();
+                for (int kolom = 0; kolom < toekomst.GetLength(1); kolom++)
+                {
+                    stringBuilder.Append(toekomst[rij, kolom] == Status.Alive ? "☻" : " ");
+                }
+                Console.SetCursorPosition(cursY + 4 , cursX + 2 + rij);
+                Console.Write(stringBuilder.ToString());
+            }
+
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
+            for (int i = 0; i < msg.GetLength(0); i++)
+            {
+                aanAfTeller = aanAfTeller - 1 < 0 ? 100 : --aanAfTeller;
+
+               
+                if (i==0)
+                {
+                    //aanAfTeller = (aanAfTeller - 1 < 0) ? 500 : aanAfTeller--;
+                    if (aanAfTeller > 100/6)
+                    {
+                        Console.SetCursorPosition(cursY + 4 + toekomst.GetLength(1) + 4, cursX + 2);
+                        Console.Write(msg[i]);
+                    }
+                        
+                }
+                else if(i==1)
+                {
+                    //aanAfTeller = (aanAfTeller - 1 < 0) ? 500 : aanAfTeller--;
+                    if (aanAfTeller < 100 / 6)
+                    {
+                        Console.SetCursorPosition(cursY + 4 + toekomst.GetLength(1) + 4, cursX + 2);
+                        Console.Write(msg[i]);
+                    }
+                }
+                else
+                {
+                        
+                    switch (myObjects)
+                    {
+                        case Objects.Glider:
+                            {
+                                if (i==2)
+                                {
+                                    Console.BackgroundColor = ConsoleColor.White;
+                                    Console.ForegroundColor = ConsoleColor.Black;
+                                }
+                                else
+                                {
+                                    Console.BackgroundColor = ConsoleColor.Black;
+                                    Console.ForegroundColor = ConsoleColor.White;
+                                }
+                            }break;
+                        case Objects.Lwss:
+                            {
+                                if (i == 3)
+                                {
+                                    Console.BackgroundColor = ConsoleColor.White;
+                                    Console.ForegroundColor = ConsoleColor.Black;
+                                }
+                                else
+                                {
+                                    Console.BackgroundColor = ConsoleColor.Black;
+                                    Console.ForegroundColor = ConsoleColor.White;
+                                }
+                            }
+                            break;
+                        case Objects.Mwss:
+                            {
+                                if (i == 4)
+                                {
+                                    Console.BackgroundColor = ConsoleColor.White;
+                                    Console.ForegroundColor = ConsoleColor.Black;
+                                }
+                                else
+                                {
+                                    Console.BackgroundColor = ConsoleColor.Black;
+                                    Console.ForegroundColor = ConsoleColor.White;
+                                }
+                            }
+                            break;
+                        case Objects.Hwss:
+                            {
+                                if (i == 5)
+                                {
+                                    Console.BackgroundColor = ConsoleColor.White;
+                                    Console.ForegroundColor = ConsoleColor.Black;
+                                }
+                                else
+                                {
+                                    Console.BackgroundColor = ConsoleColor.Black;
+                                    Console.ForegroundColor = ConsoleColor.White;
+                                }
+                            }
+                            break;
+                        case Objects.Pulsar:
+                            {
+                                if (i == 6)
+                                {
+                                    Console.BackgroundColor = ConsoleColor.White;
+                                    Console.ForegroundColor = ConsoleColor.Black;
+                                }
+                                else
+                                {
+                                    Console.BackgroundColor = ConsoleColor.Black;
+                                    Console.ForegroundColor = ConsoleColor.White;
+                                }
+                            }
+                            break;
+                        default:
+                            {
+                                Console.BackgroundColor = ConsoleColor.Black;
+                                Console.ForegroundColor = ConsoleColor.White;
+                            }break;
+                    }
+                    Console.SetCursorPosition(cursY + 4 + toekomst.GetLength(1) + 4, cursX + 2 + (i * 4));
+                    Console.Write(msg[i]);
+                    Console.BackgroundColor = ConsoleColor.Black;
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                    
+
+            }
+            Console.CursorVisible = false;
+            Thread.Sleep(timeout);
+        }
+        
+        static Status[,] DrawObjectInGrid(Status[,] huidigeGrid, bool[,] toPrint, int oRij = 0, int oKol = 0)
+        {
+            Status[,] newGrid = huidigeGrid;
+            int r = 0;
+
+            for (int rij = (oRij + toPrint.GetLength(0)) > huidigeGrid.GetLength(0) ? huidigeGrid.GetLength(0)-toPrint.GetLength(0)-1 : oRij ; rij < oRij + toPrint.GetLength(0) ; rij++)
+            {
+                int k = 0;
+                for (int kolom = (oKol + toPrint.GetLength(1)) > huidigeGrid.GetLength(1) ? huidigeGrid.GetLength(1) - toPrint.GetLength(1)-1 : oKol ; kolom < oKol + toPrint.GetLength(1); kolom++)
+                {
+                    if (toPrint[r, k++]) newGrid[rij, kolom] = Status.Alive;
+                    else newGrid[rij, kolom] = Status.Dead;
+                }
+                r++;
+            }
             return newGrid;
         }
-        static bool InputBool(string tekst = "j/n", bool Cyes = true, bool Cno = false)
-        {
-            ConsoleKeyInfo keyStrike = new ConsoleKeyInfo();
-
-            Console.WriteLine(tekst);
-            keyStrike = Console.ReadKey(true);
-
-            switch (Char.ToLower(keyStrike.KeyChar))
-            {
-                case 'y':
-                case 'j': return Cyes;
-                case 'n': return Cno;
-            }
-            return false;
-
-        }
-        static ConsoleKeyInfo InputKey(string tekst = "Keuze: ")
-        {
-            Console.Write(tekst);
-            ConsoleKeyInfo keyStrike = Console.ReadKey(true);
-            return keyStrike;
-
-        }
     }
-
 }
