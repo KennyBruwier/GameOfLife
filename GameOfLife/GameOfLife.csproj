@@ -41,11 +41,12 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="TDSconsoleMuisEvents">
-      <HintPath>..\..\..\..\OneDrive\Bureaublad\TDSconsoleMuisEvents.dll</HintPath>
+    <Reference Include="TDStoetsenbordEnMuisEventsInConsole">
+      <HintPath>bin\Debug\GameOfLife-master\GameOfLife\bin\Debug\TDStoetsenbordEnMuisEventsInConsole.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Gol_Object.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TDSwindow.cs" />
