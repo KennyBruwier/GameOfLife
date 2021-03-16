@@ -7,6 +7,7 @@ using System.Threading;
 using System.Diagnostics;
 using TDSconsoleMuisEvents;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace GameOfLife
 {
@@ -40,8 +41,13 @@ namespace GameOfLife
 
         static void Main(string[] args)
         {
+            // -- Merci Tom Dilen!
             TDSconsoleMuis muis = new TDSconsoleMuis();
+            TDSwindow tDSwindow = new TDSwindow();
 
+            int h = 63;
+            int b = 240;
+            TDSwindow.SetFixedWindow(h>Console.LargestWindowWidth? Console.LargestWindowWidth : h, b > Console.LargestWindowHeight?Console.LargestWindowHeight:b);
             muis.OnMuisKlik += Muis_OnMuisKlik;
 
             Thread gameOfLife1 = new Thread(()=>GameOfLife(50,100,0,0));
@@ -58,6 +64,7 @@ namespace GameOfLife
 
         private static void Muis_OnMuisKlik(object sender, TDSmuisKlikEventArgs e)
         {
+            
             muisClick = false;
             muisX = e.Muis.Xpositie;
             muisY = e.Muis.Ypositie;
@@ -65,12 +72,17 @@ namespace GameOfLife
             invoer = true;
         }
 
-        static void GameOfLife(int Rijen = 50, int Kolomen = 100, int cursX = 0, int cursY = 0)
+        static void GameOfLife
+            (
+            int Rijen = 50, 
+            int Kolomen = 100, 
+            int cursX = 0, 
+            int cursY = 0, 
+            int leftBorder = 4, 
+            int topBorder = 2
+            )
         {
             Status[,] grid = new Status[Rijen, Kolomen];
-            
-            string optionSelected = "Glider";
-            Random rnd = new Random();
             Console.OutputEncoding = Encoding.Unicode;
             bool clear = false;
             bool[,] glider = { { false, true, false }, { false, false, true }, { true, true, true } };
@@ -125,7 +137,7 @@ namespace GameOfLife
             string[] keyBindsMenu = { "G A M E  of  L I F E", "L I F E  of  G A M E", "1: Glider", "2: Light-weight spaceship", "3: Middle-weight spaceship", "4: Heavy-weight spaceship", "5: Pulsar", "6: 119P4H1V0", "7: Glider Gun" };
 
             string[] title = { "G A M E  of  L I F E", "L I F E  of  G A M E" };
-            Console.Clear();
+            
             Console.WindowWidth = 150;
             Console.WindowHeight = 61;
 
@@ -169,49 +181,42 @@ namespace GameOfLife
                             case ConsoleKey.D1:
                                 {
                                     myObjects = Objects.Glider;
-                                    optionSelected = "Glider";
                                 }
                                 break;
                             case ConsoleKey.NumPad2:
                             case ConsoleKey.D2:
                                 {
                                     myObjects = Objects.Lwss;
-                                    optionSelected = "Light-weight spaceship";
                                 }
                                 break;
                             case ConsoleKey.NumPad3:
                             case ConsoleKey.D3:
                                 {
                                     myObjects = Objects.Mwss;
-                                    optionSelected = "Medium-weight spaceship";
                                 }
                                 break;
                             case ConsoleKey.NumPad4:
                             case ConsoleKey.D4:
                                 {
                                     myObjects = Objects.Hwss;
-                                    optionSelected = "Heavy-weight spaceship";
                                 }
                                 break;
                             case ConsoleKey.NumPad5:
                             case ConsoleKey.D5:
                                 {
                                     myObjects = Objects.Pulsar;
-                                    optionSelected = "Pulsar";
                                 }
                                 break;
                             case ConsoleKey.NumPad6:
                             case ConsoleKey.D6:
                                 {
                                     myObjects = Objects._119P4H1V0;
-                                    optionSelected = "119P4H1V0";
                                 }
                                 break;
                             case ConsoleKey.NumPad7:
                             case ConsoleKey.D7:
                                 {
                                     myObjects = Objects.Glidergun;
-                                    optionSelected = "Glidergun";
                                 }
                                 break;
                         }
@@ -221,55 +226,42 @@ namespace GameOfLife
 
                     if (muisClick)
                     {
-                        int oRij, bRij, oKol, bKol;
                         muisClick = false;
-                        if (muisX < Kolomen && muisY < Rijen)
+                        if ((muisX < Kolomen+leftBorder && muisY < Rijen+topBorder) && (muisX > leftBorder && muisY > topBorder))
                         {
-                            oKol = muisX;
-                            bKol = muisX;
-                            oRij = muisY;
-                            bRij = muisY;
-
-                        }
-                        else
-                        {
-                            oRij = (Rijen / 2);
-                            bRij = (Rijen / 2);
-                            oKol = (Kolomen / 2);
-                            bKol = (Kolomen / 2);
-                        }
-                        switch (myObjects)
-                        {
-                            case Objects.Glider:
-                                grid = DrawObjectInGrid(grid, glider, oRij, oKol);
-                                break;
-                            case Objects.Lwss:
-                                grid = DrawObjectInGrid(grid, lWSS, oRij, oKol);
-                                break;
-                            case Objects.Mwss:
-                                grid = DrawObjectInGrid(grid, mWSS, oRij, oKol);
-                                break;
-                            case Objects.Hwss:
-                                grid = DrawObjectInGrid(grid, hWSS, oRij, oKol);
-                                break;
-                            case Objects.Pulsar:
-                                grid = DrawObjectInGrid(grid, pulsar, oRij, oKol);
-                                break;
-                            case Objects._119P4H1V0:
-                                grid = DrawObjectInGrid(grid, _119P4H1V0, oRij, oKol);
-                                break;
-                            case Objects.Glidergun:
-                                grid = DrawObjectInGrid(grid, gliderGun, oRij, oKol);
-                                break;
+                            switch (myObjects)
+                            {
+                                case Objects.Glider:
+                                    grid = DrawObjectInGrid(grid, glider, muisY-topBorder, muisX-leftBorder);
+                                    break;
+                                case Objects.Lwss:
+                                    grid = DrawObjectInGrid(grid, lWSS, muisY - topBorder, muisX - leftBorder);
+                                    break;
+                                case Objects.Mwss:
+                                    grid = DrawObjectInGrid(grid, mWSS, muisY - topBorder, muisX - leftBorder);
+                                    break;
+                                case Objects.Hwss:
+                                    grid = DrawObjectInGrid(grid, hWSS, muisY - topBorder, muisX - leftBorder);
+                                    break;
+                                case Objects.Pulsar:
+                                    grid = DrawObjectInGrid(grid, pulsar, muisY - topBorder, muisX - leftBorder);
+                                    break;
+                                case Objects._119P4H1V0:
+                                    grid = DrawObjectInGrid(grid, _119P4H1V0, muisY - topBorder, muisX - leftBorder);
+                                    break;
+                                case Objects.Glidergun:
+                                    grid = DrawObjectInGrid(grid, gliderGun, muisY - topBorder, muisX - leftBorder);
+                                    break;
+                            }
                         }
                     }
                 }
-                Print(grid, keyBindsMenu, optionSelected, snelheid, cursX, cursY);
-                Console.SetCursorPosition(4, grid.GetLength(0) + 4);
+                PrintGrid(grid, keyBindsMenu, snelheid, cursX, cursY,leftBorder:leftBorder,topBorder:topBorder);
+                Console.SetCursorPosition(leftBorder, grid.GetLength(0) + 4);
                 Console.Write("Left mouse click to create");
                 Console.Write(string.Format("{0,74}","<UP ARROW> increase speed"));
                
-                Console.SetCursorPosition(4, grid.GetLength(0) + 5);
+                Console.SetCursorPosition(leftBorder, grid.GetLength(0) + 5);
                 Console.Write($"huidige snelheid: {snelheid}");
                 Console.Write("<DOWN ARROW> decrease speed".PadLeft(82-snelheid.ToString().Length));
                 if (clear)
@@ -280,9 +272,7 @@ namespace GameOfLife
                 else
                 {
                     grid = VolgendeGeneratie(grid, false);
-                    
                 }
-                    
             }
         }
 
@@ -342,7 +332,7 @@ namespace GameOfLife
             return volgendeGeneratie;
         }
 
-        static void Print(Status[,] toekomst, string[] msg, string currentOption, int timeout = 200, int cursX = 0, int cursY = 0, bool showIndex = false)
+        static void PrintGrid(Status[,] toekomst, string[] msg, int timeout = 200, int cursX = 0, int cursY = 0, bool showIndex = false, int leftBorder = 4, int topBorder = 2, char oN = '☻', char oFf = ' ')
         {
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -379,9 +369,9 @@ namespace GameOfLife
                 stringBuilder.Clear();
                 for (int kolom = 0; kolom < toekomst.GetLength(1); kolom++)
                 {
-                    stringBuilder.Append(toekomst[rij, kolom] == Status.Alive ? "☻" : " ");
+                    stringBuilder.Append(toekomst[rij, kolom] == Status.Alive ? oN : oFf);
                 }
-                Console.SetCursorPosition(cursY + 4 , cursX + 2 + rij);
+                Console.SetCursorPosition(cursY + leftBorder, cursX + topBorder + rij);
                 Console.Write(stringBuilder.ToString());
             }
 
@@ -527,22 +517,152 @@ namespace GameOfLife
             Thread.Sleep(timeout);
         }
         
-        static Status[,] DrawObjectInGrid(Status[,] huidigeGrid, bool[,] toPrint, int oRij = 0, int oKol = 0)
+        static bool[,] ArrayFlipDim(bool[,] toReverse)
+        {
+            bool[,] newArray = new bool[toReverse.GetLength(1), toReverse.GetLength(0)];
+            for (int i = 0; i < toReverse.GetLength(0); i++)
+            {
+                for (int j = 0; j < toReverse.GetLength(1); j++)
+                {
+                    newArray[j, i] = toReverse[i, j];
+                }
+            }
+            return newArray;
+        }
+        static bool[,] ArrayReverseDim(bool[,] toReverse, bool reverseDim1 = true)
+        {
+            bool[,] newArray = new bool[toReverse.GetLength(0), toReverse.GetLength(1)];
+            for (int i = 0; i < toReverse.GetLength(0); i++)
+                if (reverseDim1)
+                    for (int j = 0; j < toReverse.GetLength(1); j++)
+                        newArray[i, newArray.GetLength(1) - 1 - j] = toReverse[i, j];
+                else
+                    for (int j = 0; j < toReverse.GetLength(1); j++)
+                        newArray[newArray.GetLength(0) - 1 - i,  j] = toReverse[i, j];
+            return newArray;
+        }
+
+        static Status[,] DrawObjectInGrid(Status[,] huidigeGrid, bool[,] toPrint, int oRij = 0, int oKol = 0, bool flipHorizontal = false, bool flipVertical = false)
         {
             Status[,] newGrid = huidigeGrid;
-            int r = 0;
+            bool[,] newToPrint = toPrint;
 
-            for (int rij = (oRij + toPrint.GetLength(0)) > huidigeGrid.GetLength(0) ? huidigeGrid.GetLength(0)-toPrint.GetLength(0)-1 : oRij ; rij < oRij + toPrint.GetLength(0) ; rij++)
+            if (flipHorizontal)
+                newToPrint = ArrayReverseDim(newToPrint);
+            if (flipVertical)
+                newToPrint = ArrayFlipDim(newToPrint);
+
+
+            int maxKol = ((oKol + newToPrint.GetLength(1)) < huidigeGrid.GetLength(1)) ? (oKol + newToPrint.GetLength(1)) : huidigeGrid.GetLength(1) - 1;
+            int maxRij = oRij + newToPrint.GetLength(0);
+            int startKol = (oKol + newToPrint.GetLength(1)) > huidigeGrid.GetLength(1) ? huidigeGrid.GetLength(1) - newToPrint.GetLength(1) - 1 : oKol;
+            int startRij = (oRij + newToPrint.GetLength(0)) > huidigeGrid.GetLength(0) ? huidigeGrid.GetLength(0) - newToPrint.GetLength(0) - 1 : oRij;
+            int printRij = 0;
+
+
+
+            for (int rij = startRij  ; rij < maxRij ; rij++)
             {
-                int k = 0;
-                for (int kolom = (oKol + toPrint.GetLength(1)) > huidigeGrid.GetLength(1) ? huidigeGrid.GetLength(1) - toPrint.GetLength(1)-1 : oKol ; kolom < oKol + toPrint.GetLength(1); kolom++)
+                int printKol = 0;
+                for (int kolom = startKol ; kolom < maxKol; kolom++)
                 {
-                    if (toPrint[r, k++]) newGrid[rij, kolom] = Status.Alive;
+                    if (newToPrint[printRij, (printKol>newToPrint.GetLength(1)-1)?newToPrint.GetLength(1)-1:printKol++]) newGrid[rij, kolom] = Status.Alive;
                     else newGrid[rij, kolom] = Status.Dead;
                 }
-                r++;
+                printRij++;
             }
             return newGrid;
+        }
+        static bool DeleteRecordInFile
+            (
+                string bestandsnaam,
+                string recordKey,
+                char seperator = '#'
+            )
+        {
+            string searchMsg = SearchDataInRecord(bestandsnaam, recordKey);
+            switch (searchMsg)
+            {
+                case "0": // file found but not record
+                case null: return false; // file not found
+                default:
+                    {
+                        string[] accReader = File.ReadAllLines(bestandsnaam);
+                        string[] newFile = new string[accReader.GetUpperBound(0)];
+                        int count = 0;
+                        foreach (string accReaderLine in accReader)
+                        {
+                            string[] recGegevens = accReaderLine.Split(seperator);
+                            if (recGegevens[0] != recordKey)
+                                newFile[count++] = accReaderLine;
+                        }
+                        File.Delete(bestandsnaam);
+                        File.WriteAllLines(bestandsnaam, newFile);
+                        return true;
+                    }
+            }
+        }
+        static bool WriteDataInRecord
+            (
+                string bestandsnaam,
+                string recordKey,
+                char seperator = '#',
+                bool createIfFileNotFound = false,
+                params string[] dataToAdd
+            )
+        {
+            string recordToAdd = recordKey;
+            for (int i = 0; i < dataToAdd.Length; i++)
+                recordToAdd += seperator + dataToAdd[i];
+
+            if (File.Exists(bestandsnaam))
+            {
+                FileStream appendFile = File.Open(bestandsnaam, FileMode.Append);
+                StreamWriter writer = new StreamWriter(appendFile);
+                writer.WriteLine(recordToAdd);
+                writer.Close();
+                return true;
+            }
+            else
+            {
+                if (createIfFileNotFound)
+                {
+                    using (StreamWriter writer = new StreamWriter(bestandsnaam))
+                        writer.WriteLine(recordToAdd);
+                    return true;
+                }
+                else
+                    return false;
+            }
+        }
+        static string SearchDataInRecord
+            (
+                string bestandsnaam,
+                string recordKey,
+                int cellToReturn = 0,
+                char seperator = '#'
+            )   /* returns: 
+                 *  null when file not found or 
+                 *  "0" when record not found
+                 */
+        {
+            if (File.Exists(bestandsnaam))
+            {
+                string[] accReader = File.ReadAllLines(bestandsnaam);
+
+                foreach (string accReaderLine in accReader)
+                {
+                    string[] recGegevens = accReaderLine.Split(seperator);
+                    if (recGegevens[0] == recordKey)
+                        if (cellToReturn <= recGegevens.GetUpperBound(0))
+                            return recGegevens[cellToReturn];
+                        else
+                            return "-1";
+                }
+            }
+            else
+                return null;
+            return "0";
         }
     }
 }
