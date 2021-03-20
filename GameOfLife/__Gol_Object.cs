@@ -18,7 +18,7 @@ namespace GameOfLife
         Oscillators,
         Spaceships
     }
-    public class Gol_Object
+    public class __Gol_Object
     // -- Game of life object
     {
 
@@ -193,7 +193,7 @@ namespace GameOfLife
         private char lineSep = '\n';
         private char recSep = ';';
         private char blueprintSep = '#';
-        private List<Gol_Object> gol_Objects;
+        private List<__Gol_Object> gol_Objects;
         public Gol_LoadFromFile()
         {
             Opstart();
@@ -203,7 +203,7 @@ namespace GameOfLife
             if (File.Exists(fileName))
             {
                 string[] txtFileName = File.ReadAllLines(fileName);
-                gol_Objects = new List<Gol_Object>();
+                gol_Objects = new List<__Gol_Object>();
 
                 foreach (string txtLine in txtFileName)
                 {
