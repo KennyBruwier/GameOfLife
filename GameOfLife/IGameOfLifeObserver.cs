@@ -9,9 +9,9 @@ namespace GameOfLife
     public interface IGameOfLifeObserver
     {
         void OnNextGeneration(bool[,] aNewRaster );
-        void OnGameOfLifeLoadedComplete(List<GOLgameObject> aLstOfGeneratedGameObjects, double aFps, double cAlive);
+        void OnGameOfLifeLoadedComplete(List<GOLgameObject> aLstOfGeneratedGameObjects, double aFps);
         void OnGameSpeedChanged(double aFps);
 
-        void OnGameCountChanged(double aFps, double cAlive, bool calibrate = false);
+        void OnGameCountChanged(double aFps, bool calibrate = false);
     }
 }

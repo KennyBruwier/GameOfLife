@@ -20,16 +20,7 @@ namespace GameOfLife
         private int _delay; //altijd deze 2via 
         private double _fps; //propertie FPS instellen
         private bool _isLoadingComplete = false;
-        private double _cAlive;
-        public double _CAlive {
-            get { return _cAlive; }
-            set {
-                _cAlive = value;
 
-                if (_isLoadingComplete)
-                    _iGameOfLifeObserver.OnGameCountChanged(_fps,_cAlive);
-            }
-        }
         //----------------------------------------------------------------------------- read and write props
         public double FPS {
             get { return _fps; }
@@ -84,7 +75,7 @@ namespace GameOfLife
 
             //afvuren naar observer
             //---------------------
-            _iGameOfLifeObserver.OnGameOfLifeLoadedComplete(_lstGameObjects, FPS, _cAlive);
+            _iGameOfLifeObserver.OnGameOfLifeLoadedComplete(_lstGameObjects, FPS);
             _isLoadingComplete = true;
         }
         //========================================================================================================
@@ -112,7 +103,7 @@ namespace GameOfLife
                 if (! IsPause) { 
                     //ipv van hier te tekenen sturen we het nu naar de observer 
                     _iGameOfLifeObserver.OnNextGeneration(_grid);
-                    _iGameOfLifeObserver.OnGameCountChanged(_fps,_cAlive);
+                    _iGameOfLifeObserver.OnGameCountChanged(_fps);
                     if (_clear)
                     {
                         KillAllCells();
@@ -145,7 +136,6 @@ namespace GameOfLife
         {
             bool[,] volgendeGeneratie = new bool[_grid.GetLength(0), _grid.GetLength(1)];
 
-            _cAlive = 0;
             for (int rij = 0; rij < _grid.GetLength(0); rij++)
             {
                 for (int kolom = 0; kolom < _grid.GetLength(1); kolom++)
@@ -190,11 +180,6 @@ namespace GameOfLife
                     else if ( ! huidigeCel && burenInLeven == 3)
                         volgendeGeneratie[rij, kolom] = true;
                     else volgendeGeneratie[rij, kolom] = huidigeCel;
-                    _cAlive += volgendeGeneratie[rij, kolom] ? 1 : 0;
-                    if (_cAlive > 0)
-                    {
-                        string temp = "";
-                    }
                 }
             }
             _grid = volgendeGeneratie;

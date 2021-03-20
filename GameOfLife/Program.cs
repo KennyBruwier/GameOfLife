@@ -88,7 +88,7 @@ namespace GameOfLife
         private GameOfLife myGameOfLife;
         private object myTekenLocker = new object();
         private List<GOLgameObject> myLstOfGameObjects;
-        private double cAliveCalibration;
+        private double countAlive;
 
         private StringBuilder[] tekenBuffer;
 
@@ -180,7 +180,7 @@ namespace GameOfLife
 
 
         #region=========================================================================== IGameOfLifeObserver methods
-        public void OnGameOfLifeLoadedComplete(List<GOLgameObject> aLstOfGeneratedGameObjects, double aFps, double cAlive)
+        public void OnGameOfLifeLoadedComplete(List<GOLgameObject> aLstOfGeneratedGameObjects, double aFps)
         {
             TDSconsoleMuisEnToetsenbord.StartEvents();
             TDSconsoleMuisEnToetsenbord.GetInstance().OnMuisKlik += Program_OnMuisKlik;
@@ -191,7 +191,7 @@ namespace GameOfLife
 
             Console.CursorVisible = false;
 
-            Console.Title = APP_TITTLE + string.Format("{0,10}: {1,-10} {2,-10}","Fps",aFps,cAlive);
+            //Console.Title = APP_TITTLE + string.Format("{0,10}: {1,-10} {2,-10}","Fps",aFps);
             this.myLstOfGameObjects = aLstOfGeneratedGameObjects;
 
             //myGameOfLife.CurrentSelectedGameObject = 4;
@@ -204,16 +204,18 @@ namespace GameOfLife
         public void OnNextGeneration(bool[,] aNewRaster)
         {
 
-           
 
+            countAlive = 0;
             //stringbuffers opnieuw initialiseren
             for (int rij = 0; rij < aNewRaster.GetLength(0); rij++)
             {
                 for (int kolom = 0; kolom < aNewRaster.GetLength(1); kolom++)
                 {
                     tekenBuffer[rij][kolom] = aNewRaster[rij, kolom] ? '☻' : ' ';
+                    countAlive += aNewRaster[rij, kolom] ? 1 : 0;
                 }
             }
+            
             //locken en tekenen die handel, nog niet 100% content, 
             //bij het gebruik van het menu met de pijltjes flikkert
             //het geheel heel af en toe, UPDATE: toch opgelost, die console.bacgroundcolor
@@ -232,16 +234,16 @@ namespace GameOfLife
         }
 
 
-        public void OnGameCountChanged(double aFps, double cAlive, bool calibrate = false)
+        public void OnGameCountChanged(double aFps, bool calibrate = false)
         {
             
-            Console.Title = APP_TITTLE + string.Format("{0,10:0.0}: {1,-10} alive: {2,-10}", "Fps", aFps, cAlive);
+            Console.Title = APP_TITTLE + string.Format("{0,10:0.0}: {1,-10} alive: {2,-10}", "Fps", aFps, countAlive);
 
         }
 
         public void OnGameSpeedChanged(double aFps)
         {
-            Console.Title = APP_TITTLE + "          Fps: " + aFps;
+            Console.Title = APP_TITTLE + string.Format("{0,10:0.0}: {1,-10} alive: {2,-10}", "Fps", aFps, countAlive);
             //Debug.WriteLine("new Fps: " + aFps);
         }
 
