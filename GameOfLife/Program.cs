@@ -237,13 +237,13 @@ namespace GameOfLife
         public void OnGameCountChanged(double aFps, bool calibrate = false)
         {
             
-            Console.Title = APP_TITTLE + string.Format("{0,10:0.0}: {1,-10} alive: {2,-10}", "Fps", aFps, countAlive);
+            Console.Title = APP_TITTLE + string.Format("{0,10}: {1,-10:0.0} alive: {2,-10}", "Fps", aFps, countAlive);
 
         }
 
         public void OnGameSpeedChanged(double aFps)
         {
-            Console.Title = APP_TITTLE + string.Format("{0,10:0.0}: {1,-10} alive: {2,-10}", "Fps", aFps, countAlive);
+            Console.Title = APP_TITTLE + string.Format("{0,10}: {1,-10:0.0} alive: {2,-10}", "Fps", aFps, countAlive);
             //Debug.WriteLine("new Fps: " + aFps);
         }
 
