@@ -53,8 +53,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TDSwindow.cs" />
-    <Compile Include="______mistake.cs" />
-    <Compile Include="__ZZZZ____deletedCode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

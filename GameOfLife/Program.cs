@@ -26,7 +26,33 @@ using TDSconsoleMuisEnToetsenbordEvents;
 /// aan naar gelang de files, alles gebeurd automatisch, zoals het hoort
 /// 
 /// </summary>
-
+/// 
+/// -- Parking 
+/// 
+//static bool[,] ArrayFlipDim(bool[,] toReverse)
+//{
+//    bool[,] newArray = new bool[toReverse.GetLength(1), toReverse.GetLength(0)];
+//    for (int i = 0; i < toReverse.GetLength(0); i++)
+//    {
+//        for (int j = 0; j < toReverse.GetLength(1); j++)
+//        {
+//            newArray[j, i] = toReverse[i, j];
+//        }
+//    }
+//    return newArray;
+//}
+//static bool[,] ArrayReverseDim(bool[,] toReverse, bool reverseDim1 = true)
+//{
+//    bool[,] newArray = new bool[toReverse.GetLength(0), toReverse.GetLength(1)];
+//    for (int i = 0; i < toReverse.GetLength(0); i++)
+//        if (reverseDim1)
+//            for (int j = 0; j < toReverse.GetLength(1); j++)
+//                newArray[i, newArray.GetLength(1) - 1 - j] = toReverse[i, j];
+//        else
+//            for (int j = 0; j < toReverse.GetLength(1); j++)
+//                newArray[newArray.GetLength(0) - 1 - i, j] = toReverse[i, j];
+//    return newArray;
+//}
 namespace GameOfLife
 {
     public enum ShowStyle
