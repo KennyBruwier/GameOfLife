@@ -13,6 +13,7 @@ namespace GameOfLife
         const double MIN_FPS = 0.5;
         //--------------------------------------------------------------------------------------only private
         private bool[,] _grid; //vergelijkingen gaan sneller met booleans
+        private GOLcellObject[,] _gridObj;
         private List<GOLgameObject> _lstGameObjects;
         private bool _runSimulator = true;
         private bool _clear = false;
@@ -31,7 +32,7 @@ namespace GameOfLife
                 _delay = (int)(1000 / _fps);
                 //enkel afvuren als niet door constructor geset is
                 if (_isLoadingComplete)
-                    _iGameOfLifeObserver.OnGameSpeedChanged(_fps);
+                    _iGameOfLifeObserver.OnGameCountChanged(_fps);
             }
         }
         public bool IsPause { get; set; }
@@ -47,12 +48,20 @@ namespace GameOfLife
             //--------
             FPS = aFPS;
 
+            _gridObj = new GOLcellObject[aRowCount, aColCount];
+            for (int rij = 0; rij < _gridObj.GetLength(0); rij++)
+                for (int kolom = 0; kolom < _gridObj.GetLength(1); kolom++)
+                {
+                    _gridObj[rij, kolom] = new GOLcellObject(false);
+                    _gridObj[rij, kolom].CurrentAlive = false;
+                }
+
             //grid aanmaken en initialisatie alles Dead van de grid 
             //-----------------------------------------------------
-            _grid = new bool[aRowCount, aColCount];
-            for (int rij = 0; rij < _grid.GetLength(0); rij++)
-                for (int kolom = 0; kolom < _grid.GetLength(1); kolom++)
-                    _grid[rij, kolom] = false;
+            //_grid = new bool[aRowCount, aColCount];
+            //for (int rij = 0; rij < _grid.GetLength(0); rij++)
+            //    for (int kolom = 0; kolom < _grid.GetLength(1); kolom++)
+            //        _grid[rij, kolom] = false;
 
             //list gameObjects vullen
             //-----------------------
@@ -93,7 +102,8 @@ namespace GameOfLife
         //=========================================================================================================
         public void InsertSelectedGameObject(int x, int y)
         {
-            DrawObjectInGrid(_grid, _lstGameObjects[CurrentSelectedGameObject].Pattern, y, x);
+            DrawObjectInGrid(_gridObj, _lstGameObjects[CurrentSelectedGameObject].Pattern, y, x);
+
         }
         //========================================================================================================
         private void GameOfLifeThreadDelegate()
@@ -102,16 +112,16 @@ namespace GameOfLife
             {
                 if (! IsPause) { 
                     //ipv van hier te tekenen sturen we het nu naar de observer 
-                    _iGameOfLifeObserver.OnNextGeneration(_grid);
+                    _iGameOfLifeObserver.OnNextGeneration(_gridObj);
                     _iGameOfLifeObserver.OnGameCountChanged(_fps);
                     if (_clear)
                     {
-                        KillAllCells();
+                        KillAllCellsInObj();
                         _clear = false;
                     }
                     else
                     {
-                        VolgendeGeneratie();
+                        VolgendeGeneratieObj();
                     }
                     Thread.Sleep(_delay);
                 }
@@ -130,8 +140,58 @@ namespace GameOfLife
                 for (int kolom = 0; kolom < _grid.GetLength(1); kolom++)
                     _grid[rij, kolom] = false;
         }
+        private void KillAllCellsInObj(/*bool[,] huidigeGrid*/)
+        {
+            //kill ze allemaal
+            for (int rij = 0; rij < _gridObj.GetLength(0); rij++)
+                for (int kolom = 0; kolom < _gridObj.GetLength(1); kolom++)
+                    _gridObj[rij, kolom].CurrentAlive = false;
+        }
         //=======================================================================================================================
-        
+        private void VolgendeGeneratieObj()
+        {
+            GOLcellObject[,] volgendeGeneratie = new GOLcellObject[_gridObj.GetLength(0), _gridObj.GetLength(1)];
+            //bool[,] volgendeGeneratie = new bool[_grid.GetLength(0), _grid.GetLength(1)];
+
+            for (int rij = 0; rij < _gridObj.GetLength(0); rij++)
+            {
+                for (int kolom = 0; kolom < _gridObj.GetLength(1); kolom++)
+                {
+                    int burenInLeven = 0;
+
+                    int buurRij;
+                    for (int i = -1; i <= 1; i++)
+                    {
+                        buurRij = (rij + i) < 1 ?
+                                    _gridObj.GetLength(0) - 3 - i :
+                                    (rij + i) > _gridObj.GetLength(0) - 2 ?
+                                        0 + i : rij + i;
+                        for (int j = -1; j <= 1; j++)
+                        {
+                            // kan beter: ifs eruit halen
+                            burenInLeven += _gridObj[
+                                buurRij,
+                                (kolom + j) < 1 ?
+                                    _gridObj.GetLength(1) - 3 - j :
+                                    (kolom + j) > _gridObj.GetLength(1) - 2 ?
+                                        0 + j : kolom + j].CurrentAlive ? 1 : 0;
+                        }
+                    }
+
+                    bool huidigeCel = _gridObj[rij, kolom].CurrentAlive;
+                    burenInLeven -= huidigeCel ? 1 : 0;
+                    volgendeGeneratie[rij, kolom] = new GOLcellObject();
+                    if (huidigeCel && burenInLeven < 2)
+                        volgendeGeneratie[rij, kolom].CurrentAlive = false;
+                    else if (huidigeCel && burenInLeven > 3)
+                        volgendeGeneratie[rij, kolom].CurrentAlive = false;
+                    else if (!huidigeCel && burenInLeven == 3)
+                        volgendeGeneratie[rij, kolom].CurrentAlive = true;
+                    else volgendeGeneratie[rij, kolom].CurrentAlive = huidigeCel;
+                }
+            }
+            _gridObj = volgendeGeneratie;
+        }
         private void VolgendeGeneratie()
         {
             bool[,] volgendeGeneratie = new bool[_grid.GetLength(0), _grid.GetLength(1)];
@@ -205,5 +265,25 @@ namespace GameOfLife
                 printRij++;
             }
         }
+        private void DrawObjectInGrid(GOLcellObject[,] huidigeGrid, bool[,] toPrint, int oRij = 0, int oKol = 0)
+        {
+            GOLcellObject[,] newGrid = huidigeGrid;
+
+            int maxKol = (oKol + toPrint.GetLength(1)) < huidigeGrid.GetLength(1) ? oKol + toPrint.GetLength(1) : huidigeGrid.GetLength(1) - 1;
+            int maxRij = (oRij + toPrint.GetLength(0)) < huidigeGrid.GetLength(0) ? oRij + toPrint.GetLength(0) : huidigeGrid.GetLength(0) - 1;
+            int startKol = (oKol + toPrint.GetLength(1)) > huidigeGrid.GetLength(1) ? huidigeGrid.GetLength(1) - toPrint.GetLength(1) - 1 : oKol;
+            int startRij = (oRij + toPrint.GetLength(0)) > huidigeGrid.GetLength(0) ? huidigeGrid.GetLength(0) - toPrint.GetLength(0) - 1 : oRij;
+            int printRij = 0;
+
+            for (int rij = startRij; rij < maxRij; rij++)
+            {
+                int printKol = 0;
+                for (int kolom = startKol; kolom < maxKol; kolom++)
+                    if (toPrint[printRij, (printKol > toPrint.GetLength(1) - 1) ? toPrint.GetLength(1) - 1 : printKol++]) newGrid[rij, kolom] = new GOLcellPlayer(true);
+                    else newGrid[rij, kolom].CurrentAlive = false;
+                printRij++;
+            }
+        }
+
     }
 }

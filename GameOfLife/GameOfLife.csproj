@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GameOfLife.cs" />
+    <Compile Include="GOLcellObject.cs" />
     <Compile Include="GOLgameObject.cs" />
     <Compile Include="__Gol_Object.cs" />
     <Compile Include="IGameOfLifeObserver.cs" />

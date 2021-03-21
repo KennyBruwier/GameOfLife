@@ -91,7 +91,7 @@ namespace GameOfLife
 
             //Console.ReadKey();
 
-            ShowStyle style = ShowStyle.Medium;
+            ShowStyle style = ShowStyle.Small;
 
             //hier nog menuke welke showstyle
 
@@ -105,7 +105,8 @@ namespace GameOfLife
         //bool runSimulator = true;
         //int aanAfTeller = 0;
         private const string APP_TITTLE = "The Great \"Game of life\" By Tom Dilen and Kenny Bruwier   ";
-
+        private const char _alive = '☻';
+        private const char _dead = ' ';
         private const int BORDER_TOP = 2;
         private const int BORDER_BOTTOM = 2;
         private const int BORDER_RIGHT = 25;
@@ -115,6 +116,12 @@ namespace GameOfLife
         private object myTekenLocker = new object();
         private List<GOLgameObject> myLstOfGameObjects;
         private double countAlive;
+        private double countGem;
+        const int AvgLength = 100;
+        private double[] countAvg = new double[AvgLength];
+        private int iAvg = 0;
+        private int iFrames;
+
 
         private StringBuilder[] tekenBuffer;
 
@@ -226,19 +233,46 @@ namespace GameOfLife
             //en runnen lek zot die handel :-)
             myGameOfLife.Run();
         }
-
-        public void OnNextGeneration(bool[,] aNewRaster)
+        public void OnNextGeneration(GOLcellObject[,] aNewRaster)
         {
-
-
             countAlive = 0;
             //stringbuffers opnieuw initialiseren
             for (int rij = 0; rij < aNewRaster.GetLength(0); rij++)
             {
                 for (int kolom = 0; kolom < aNewRaster.GetLength(1); kolom++)
                 {
-                    tekenBuffer[rij][kolom] = aNewRaster[rij, kolom] ? '☻' : ' ';
-                    countAlive += aNewRaster[rij, kolom] ? 1 : 0;
+                    tekenBuffer[rij][kolom] = aNewRaster[rij, kolom].CurrentAlive ? aNewRaster[rij, kolom].Alive : aNewRaster[rij, kolom].Dead;
+                    if (aNewRaster[rij, kolom].CurrentAlive) countAlive++;
+                }
+            }
+
+            //locken en tekenen die handel, nog niet 100% content, 
+            //bij het gebruik van het menu met de pijltjes flikkert
+            //het geheel heel af en toe, UPDATE: toch opgelost, die console.bacgroundcolor
+            //en foregroundcolor stond buiten de lock, djeeeeezuuuuus
+            lock (myTekenLocker)
+            {
+                Console.BackgroundColor = ConsoleColor.White;
+                Console.ForegroundColor = ConsoleColor.Black;
+                for (int rij = 0; rij < aNewRaster.GetLength(0); rij++)
+                {
+                    Console.SetCursorPosition(BORDER_LEFT, BORDER_TOP + rij);
+                    Console.Write(tekenBuffer[rij].ToString());
+                }
+                Console.ResetColor();
+            }
+        }
+
+        public void OnNextGeneration(bool[,] aNewRaster)
+        {
+            countAlive = 0;
+            //stringbuffers opnieuw initialiseren
+            for (int rij = 0; rij < aNewRaster.GetLength(0); rij++)
+            {
+                for (int kolom = 0; kolom < aNewRaster.GetLength(1); kolom++)
+                {
+                    tekenBuffer[rij][kolom] = aNewRaster[rij, kolom] ? _alive : _dead;
+                    if (aNewRaster[rij, kolom]) countAlive++;
                 }
             }
             
@@ -262,14 +296,28 @@ namespace GameOfLife
 
         public void OnGameCountChanged(double aFps, bool calibrate = false)
         {
-            
-            Console.Title = APP_TITTLE + string.Format("{0,10}: {1,-10:0.0} alive: {2,-10}", "Fps", aFps, countAlive);
+            const int iFramesReset = 500; // ingame "cycles"
+
+            int iGameSec = Convert.ToInt32(iFrames / aFps);
+            iFrames = (iFrames > aFps * iFramesReset) ? 0 : iFrames + 1;
+            countAvg[iAvg] = countAlive;
+            iAvg = (iAvg > AvgLength - 2) ? 0 : iAvg + 1;
+            if (iFrames % Math.Round(aFps,0) == 0)
+                countGem = countAvg.Average();
+            string title = string.Format(   "Fps: {0,-5:0.0} " +
+                                            "frame: {1,-7} " +
+                                            "game sec: {2,-5}", aFps, iFrames, iGameSec);
+            title+= string.Format(  "{2,2}: {0,-7}" +
+                                    "gem {2,2}: {1,-9:0.0}", countAlive, countGem, _alive) + APP_TITTLE;
+
+
+            Console.Title = title;
 
         }
 
         public void OnGameSpeedChanged(double aFps)
         {
-            Console.Title = APP_TITTLE + string.Format("{0,10}: {1,-10:0.0} alive: {2,-10}", "Fps", aFps, countAlive);
+            //Console.Title = APP_TITTLE + string.Format("{0,10}: {1,-10:0.0} alive: {2,-10}", "Fps", aFps, countAlive);
             //Debug.WriteLine("new Fps: " + aFps);
         }
 
@@ -279,19 +327,12 @@ namespace GameOfLife
 
 
         #region=============================================================================muis en toetsenbord events
-        // -- ha! die #region markering is handig! ga ik onthouden ...
-
-        // -- nice!! 
         private void Program_OnMuisScroll(object sender, TDSmiddenMuisScrollEventArgs e)
         {
             if (e.MiddenMuisscrollRichting == MiddenMuisScroll.Boven)
-            {
                 myGameOfLife.FPS *=1.2;
-            }
             else
-            {
                 myGameOfLife.FPS *=0.8;
-            }
         }
         private void Program_OnToetsIngedrukt(object sender, TDStoetsenbordEventArgs e)
         {
