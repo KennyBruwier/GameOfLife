@@ -121,6 +121,9 @@ namespace GameOfLife
         private double[] countAvg = new double[AvgLength];
         private int iAvg = 0;
         private int iFrames;
+        private int _benchmarkTeller = 0;
+        private const int BENCHMARK_PART = 60;
+        Stopwatch watch = new Stopwatch();
 
 
         private StringBuilder[] tekenBuffer;
@@ -229,6 +232,7 @@ namespace GameOfLife
 
             //myGameOfLife.CurrentSelectedGameObject = 4;
             TekenMenu();
+            watch.Start();
 
             //en runnen lek zot die handel :-)
             myGameOfLife.Run();
@@ -261,6 +265,16 @@ namespace GameOfLife
                 }
                 Console.ResetColor();
             }
+            _benchmarkTeller++;
+            if (_benchmarkTeller > BENCHMARK_PART)
+            {
+                watch.Stop();
+                Console.Title = "fps: " + (1000 / (watch.ElapsedMilliseconds / BENCHMARK_PART) + " # rijen: " + RIJEN + " # kolommen: " + KOLOMMEN); ;
+                _benchmarkTeller = 0;
+                watch.Reset();
+
+                watch.Start();
+            }
         }
 
         public void OnNextGeneration(bool[,] aNewRaster)
@@ -290,6 +304,16 @@ namespace GameOfLife
                     Console.Write(tekenBuffer[rij].ToString());
                 }
                 Console.ResetColor();
+            }
+            _benchmarkTeller++;
+            if (_benchmarkTeller > BENCHMARK_PART)
+            {
+                watch.Stop();
+                Console.Title = "fps: " + (1000 / (watch.ElapsedMilliseconds / BENCHMARK_PART) + " # rijen: " + RIJEN + " # kolommen: " + KOLOMMEN); ;
+                _benchmarkTeller = 0;
+                watch.Reset();
+
+                watch.Start();
             }
         }
 
